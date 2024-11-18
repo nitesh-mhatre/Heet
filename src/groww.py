@@ -49,3 +49,14 @@ def get_value(stock : str):
   stock : str -> Stock symbol as per yahoo_fin
   '''
   return stock_info.get_live_price(stock)
+  
+def datetime_to_ms(dt):
+  '''
+  Convert datetime object into milliseconds
+  
+  dt : datetime.datetime -> datetime object 
+  '''
+  epoch = datetime.datetime(1970, 1, 1)
+  delta = dt - epoch
+  milliseconds = int(delta.total_seconds() * 1000)
+  return milliseconds

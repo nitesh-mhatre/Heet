@@ -60,3 +60,11 @@ def datetime_to_ms(dt):
   delta = dt - epoch
   milliseconds = int(delta.total_seconds() * 1000)
   return milliseconds
+  
+  
+def ms_to_datetime(ms : int):
+  '''
+  ms : int -> milliseconds
+  This function returns date time object by converting milliseconds into datetime
+  '''
+  return datetime.datetime.fromtimestamp(ms, pytz.timezone('Asia/Kolkata'))

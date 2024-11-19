@@ -2,6 +2,7 @@ from src.groww import *
 
 import pandas as pd
 import os
+from datetime import datetime
 
 
 expiry = '24D05'
@@ -14,10 +15,10 @@ current_value = get_value(symbol)
 levels = get_levels(current_value, 50,8)
 options = ["PE", "CE"]
 
-dt = datetime.datetime.now()
+dt = datetime.now()
 dt = datetime_to_ms(dt)
 _to = dt
-_from = dt - 35712000*30
+_from = dt - 35712000*1000
 _from_day = dt - 35712000*1000
 
 if not os.path.exists(data_path):
@@ -38,7 +39,9 @@ df_day.rename(columns={
   4: 'DC',
   5: 'DV'
 }, inplace=True)
-df_day.to_csv(f'{day_path}{_from}.csv')
+df_day['DT'] = df_day['DT'].apply(ms_to_datetime)
+df_day = df_day.iloc[:-1]
+df_day.to_csv(f'{day_path}{datetime.now().strftime("%Y-%m-%d")}.csv')
 for level in levels:
   for call in options:
     print(level, expiry , call, _to , _from, interval)
@@ -64,6 +67,6 @@ for level in levels:
     }, inplace=True)
     df_main.drop('MV', axis=1, inplace=True)
     df_result = pd.merge(df, df_main, on='DT')
+    df_result['DT'] = df_result['DT'].apply(ms_to_datetime)
     file = f'data/{level}-{call}-{expiry}-{len(df_result)}.csv'
     df_result.to_csv(file)
-    

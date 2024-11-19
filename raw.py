@@ -18,7 +18,7 @@ print(levels)
 dt = datetime.datetime.now()
 dt = datetime_to_ms(dt)
 _to = dt
-_from = dt - 35712000*1000
+_form_days = dt - 35712000*1000
 
 if not os.path.exists(data_path):
     os.makedirs(data_path)
@@ -27,15 +27,15 @@ if not os.path.exists(data_path):
 for level in levels:
   for call in options:
     print(level, expiry , call, _to , _from, interval)
-    url_main = get_main_url(_to, _from, interval)
-    df_main = url_to_df(url_main)
-    df_main.rename(columns={
+    url_day = get_main_url(_to, _from, interval)
+    df_day = url_to_df(url_main)
+    df_day.rename(columns={
       0: 'DT',
-      1: 'MO',
-      2: 'MH',
-      3: 'ML',
-      4: 'MC',
-      5: 'MV'
+      1: 'DO',
+      2: 'DH',
+      3: 'DL',
+      4: 'DC',
+      5: 'DV'
     }, inplace=True)
     print(len(df_main))
   break

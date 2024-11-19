@@ -32,5 +32,7 @@ def get_market_data(folder,file):
   path = os.path.join(folder, file)
   df = pd.read_csv(path)
   df = df[['DT','LO','LH','LL','LC','LV','MO','MH','ML','MC']]
-  return df
+  
+  level , option , expiry, _ = file.split('-')
+  return df, level , option , expiry
   

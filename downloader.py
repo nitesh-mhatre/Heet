@@ -41,7 +41,7 @@ df_day.rename(columns={
 }, inplace=True)
 df_day['DT'] = df_day['DT'].apply(ms_to_datetime)
 df_day = df_day.iloc[:-1]
-df_day.to_csv(f'{day_path}{datetime.now().strftime("%Y-%m-%d")}.csv')
+df_day.to_csv(f'{day_path}{datetime.now().strftime("%Y-%m-%d")}.csv', index=False)
 for level in levels:
   for call in options:
     print(level, expiry , call, _to , _from, interval)
@@ -69,4 +69,4 @@ for level in levels:
     df_result = pd.merge(df, df_main, on='DT')
     df_result['DT'] = df_result['DT'].apply(ms_to_datetime)
     file = f'data/{level}-{call}-{expiry}-{len(df_result)}.csv'
-    df_result.to_csv(file)
+    df_result.to_csv(file, index=False)

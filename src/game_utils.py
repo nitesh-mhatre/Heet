@@ -1,17 +1,10 @@
 import os
 import pandas as pd 
 import random
+from groww import ms_to_datetime
 
 def get_random_file(path):
-    """
-    Returns a random file name from the given directory path.
 
-    Parameters:
-        path (str): The directory path to search for files.
-
-    Returns:
-        str: A random file name from the directory, or None if the directory is empty or invalid.
-    """
     if not os.path.exists(path):
         print("The specified path does not exist.")
         return None
@@ -32,6 +25,9 @@ def get_market_data(folder,file):
   path = os.path.join(folder, file)
   df = pd.read_csv(path)
   df = df[['DT','LO','LH','LL','LC','LV','MO','MH','ML','MC']]
+  
+  
+  DT = ms_to_datetime(df.iloc[0, 'DT'])
   
   level , option , expiry, _ = file.split('-')
   return df, level , option , expiry

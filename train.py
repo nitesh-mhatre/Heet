@@ -4,6 +4,8 @@ from environment import TradingEnvironment
 from agent import TradingAgent
 import os
 
+from game import get_game
+
 def train(env, agent, episodes, batch_size, save_path="trading_model.pth", save_every=10):
     for episode in range(episodes):
         state = env.reset()
@@ -45,12 +47,9 @@ def train(env, agent, episodes, batch_size, save_path="trading_model.pth", save_
 
 if __name__ == "__main__":
     # Replace these with real data frames
-    candles_df = pd.DataFrame(np.random.rand(1000, 5), columns=['open', 'high', 'low', 'close', 'volume'])
-    balance_df = pd.DataFrame(np.array([[10000, 0, 0]]), columns=['balance', 'on_hold', 'other_details'])  # Static
-    chart_df = pd.DataFrame(np.random.rand(50, 5), columns=['open', 'high', 'low', 'close', 'volume'])  # Static
-
+    candles_df, balance_df, chart_df = get_game()
     env = TradingEnvironment(candles_df, balance_df, chart_df)
-    state_size = 60 * 5 + 3 + 50 * 5  # Flattened sizes of candles, balance, and chart
+    state_size = 60 * 10 + 3 + 50 * 5  # Flattened sizes of candles, balance, and chart
     action_size = 3  # Buy, Sell, Hold
 
     agent = TradingAgent(state_size, action_size)
@@ -61,4 +60,4 @@ if __name__ == "__main__":
         agent.load_model(model_path)
 
     # Train the model
-    train(env, agent, episodes=100, batch_size=32, save_path=model_path)
+    train(env, agent, episodes=10, batch_size=32, save_path=model_path)

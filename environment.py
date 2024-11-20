@@ -29,7 +29,7 @@ class TradingEnvironment:
         return obs
 
     def step(self, action):
-        current_price = self.candles_df.iloc[self.current_step]['close']
+        current_price = self.candles_df.iloc[self.current_step]['LC']
 
         if action == 0:  # Buy one unit
             if self.balance >= current_price:  # Ensure sufficient balance

@@ -7,14 +7,28 @@ import numpy as np
 class DQN(nn.Module):
     def __init__(self, input_size, action_size):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(input_size, 128)
-        self.fc2 = nn.Linear(128, 128)
-        self.fc3 = nn.Linear(128, action_size)
+        self.fc1 = nn.Linear(input_size, 1024)
+        self.fc2 = nn.Linear(1024, 512)
+        self.fc3 = nn.Linear(512, 512)
+        self.fc4 = nn.Linear(512, 256)
+        self.fc5 = nn.Linear(256, 256)
+        self.fc6 = nn.Linear(256, 128)
+        self.fc7 = nn.Linear(128, 128)
+        self.fc8 = nn.Linear(128, 128)
+        self.fc9 = nn.Linear(128, 128)
+        self.fc10 = nn.Linear(128, action_size)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = torch.relu(self.fc3(x))
+        x = torch.relu(self.fc4(x))
+        x = torch.relu(self.fc5(x))
+        x = torch.relu(self.fc6(x))
+        x = torch.relu(self.fc7(x))
+        x = torch.relu(self.fc8(x))
+        x = torch.relu(self.fc9(x))
+        x = self.fc10(x)
         return x
 
 class TradingAgent:
@@ -43,12 +57,25 @@ class TradingAgent:
             return
         batch = random.sample(self.memory, batch_size)
         for state, action, reward, next_state, done in batch:
+            state = np.array(state, dtype=np.float32)  # Ensure numeric type
+            next_state = np.array(next_state, dtype=np.float32)  # Ensure numeric type
+            
+            # Convert state and next_state into tensors
+            state = torch.tensor(state, dtype=torch.float32)
+            next_state = torch.tensor(next_state, dtype=torch.float32)
+
             target = reward
             if not done:
-                target += self.gamma * torch.max(self.model(torch.tensor(next_state, dtype=torch.float32)))
-            q_values = self.model(torch.tensor(state, dtype=torch.float32))
+                # Detach next_state tensor for future reward calculation
+                next_state_tensor = next_state.clone().detach()  # Detach the tensor to stop gradient tracking
+                target += self.gamma * torch.max(self.model(next_state_tensor))
+
+            # Get current Q-values for the state
+            q_values = self.model(state)
             target_f = q_values.clone().detach()
-            target_f[action] = target
+            target_f[action] = target  # Set the target for the chosen action
+
+            # Calculate loss and backpropagate
             loss = self.criterion(q_values, target_f)
             self.optimizer.zero_grad()
             loss.backward()

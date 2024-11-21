@@ -12,9 +12,9 @@ def train(env, agent, episodes, batch_size, save_path="trading_model.pth", save_
         
         # Flatten candles and chart to 1D, balance is already 1D
         state = np.concatenate([
-            state['candles'].flatten(), 
-            state['balance'].flatten(), 
-            state['chart'].flatten()
+            state['candles'].flatten().astype(np.float32), 
+            state['balance'].flatten().astype(np.float32), 
+            state['chart'].flatten().astype(np.float32)
         ])
         
         total_reward = 0
@@ -25,9 +25,9 @@ def train(env, agent, episodes, batch_size, save_path="trading_model.pth", save_
             
             # Flatten the next state similarly
             next_state = np.concatenate([
-                next_state['candles'].flatten(), 
-                next_state['balance'].flatten(), 
-                next_state['chart'].flatten()
+                next_state['candles'].flatten().astype(np.float32), 
+                next_state['balance'].flatten().astype(np.float32), 
+                next_state['chart'].flatten().astype(np.float32)
             ])
             
             agent.remember(state, action, reward, next_state, done)
@@ -47,17 +47,36 @@ def train(env, agent, episodes, batch_size, save_path="trading_model.pth", save_
 
 if __name__ == "__main__":
     # Replace these with real data frames
-    candles_df, balance_df, chart_df = get_game()
-    env = TradingEnvironment(candles_df, balance_df, chart_df)
-    state_size = 60 * 10 + 3 + 50 * 5  # Flattened sizes of candles, balance, and chart
-    action_size = 3  # Buy, Sell, Hold
-
-    agent = TradingAgent(state_size, action_size)
-
-    # Load an existing model if it exists
-    model_path = "trading_model.pth"
-    if os.path.exists(model_path):
-        agent.load_model(model_path)
-
-    # Train the model
-    train(env, agent, episodes=10, batch_size=32, save_path=model_path)
+    no_of_games = 1
+    while True:
+      os.system('clear')
+      print(no_of_games, ' No of Games' )
+      
+      try:
+        candles_df, balance_df, chart_df , opt = get_game()
+        env = TradingEnvironment(candles_df, balance_df, chart_df)
+        state_size = 60 * 10 + 9 + 50 * 5  # Flattened sizes of candles, balance, and chart
+        action_size = 3  # Buy, Sell, Hold
+    
+        agent = TradingAgent(state_size, action_size)
+    
+        # Load an existing model if it exists
+        
+    
+        # Train the model
+        
+        if opt == 'CE':
+          model_path = "ce_model.pth"
+        else:
+          model_path = "pe_model.pth"
+        
+        if os.path.exists(model_path):
+            agent.load_model(model_path)
+          
+        train(env, agent, episodes=30, batch_size=32, save_path=model_path)
+        
+        no_of_games += 1
+      except Exception as e:
+        print(e)
+        break
+    

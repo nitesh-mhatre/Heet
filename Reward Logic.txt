@@ -1,0 +1,20 @@
+REWARD MUST BE CALCULATED BEFORE CHANGEING STEP
+
+0 action is buy
+  - check sufficient balance available
+  - check whether atleast 10% profit can be taken 
+  - check is agv posible 
+      * if last hold amount is too high from current price give give positive else negative
+      
+  => if above conditions fail then negative
+  
+1 action is sell
+  - check valid option or not
+  - check market is falling in next 20 min or sideways 
+  - chek next 30 min any high profit possible
+  
+  => if above conditions fail then negative
+  
+2 action is hold
+  - check for both sell and buy condition if reward from both action is negative then give positive else negative 
+  

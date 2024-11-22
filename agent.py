@@ -38,12 +38,13 @@ class TradingAgent:
         self.criterion = nn.MSELoss()
         self.memory = []  # Replay buffer
         self.gamma = 0.99  # Discount factor
-        self.epsilon = 1.0  # Exploration rate
+        self.epsilon =  0.7 # 1.0 Exploration rate
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.01
 
     def act(self, state):
         if np.random.rand() < self.epsilon:
+            
             return np.random.choice([0, 1, 2])  # Random action
         state = torch.tensor(state, dtype=torch.float32)
         q_values = self.model(state)

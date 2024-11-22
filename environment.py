@@ -44,6 +44,9 @@ class TradingEnvironment:
 
     def step(self, action):
         current_price = self.candles_df.iloc[self.current_step]['LC']
+        previous_price = self.candles_df.iloc[self.current_step - 1]['LC'] if self.current_step > 60 else current_price
+        
+        
 
         if action == 0:  # Buy one unit
             if self.balance >= current_price:  # Ensure sufficient balance
@@ -89,18 +92,38 @@ class TradingEnvironment:
         
         # Calculate net worth
         net_worth = (len(self.holdings) * current_price) + self.balance
-
+        
+        reward = 0
         # Rewarding logic
         if action == 0:  # Buyin
-            reward = -1 * len(self.holdings) * 15 #
-              # Small penalty for too many holdings
-        elif action == 1:  # Selling
-            if self.profit > 0:
-                reward = self.profit * 20  # Reward scaled with profit
+            # Reward/Penalty for buying
+            if current_price < previous_price:
+                reward += 200  # Reward for buying at a lower price
             else:
-                reward = self.profit * 5  # Penalize loss (negative profit)
+                reward -= 100  # Penalty for buying at a higher pric
+            # Penalty for consecutive buys
+            if len(self.history) >= 2 and self.history[-2][0] == 'buy':
+                reward -= 1000
+                
+            if len(self.history) >= 2 and self.history[-2][0] == 'sell':
+                reward -= 10000
+        elif action == 1:  # Selling# Reward/Penalty for selling
+            if self.profit > 0:
+                if 10*self.profit > current_price:
+                  reward = 100000
+                  
+                reward += self.profit * 1500  # Strong reward for profit
+                if current_price > previous_price:
+                    reward += 100  # Extra reward for selling at a peak
+            else:
+                reward += self.profit * 5  # Reduced penalty for loss
+                reward -= 200
+            
         else:  # Holding
-            reward = -5  # Encourage action over inaction
+          if current_price > previous_price:
+            reward += 150  # Slight reward for holding in an uptrend
+          else:
+            reward -= 5  # Penalize holding in a downtrend
 
         # Reward for increasing balance
         if action in (0,1):
@@ -110,7 +133,10 @@ class TradingEnvironment:
         if self.current_step - self.last_trade_step > 60:
             reward -= 50  # Penalty for inactivity
             
-        if self.current_step - self.last_trade_step < 3:
-            reward -= 100
+        if self.current_step - self.last_trade_step < 3 and action in (0,1):
+            reward -= 1000
+            
+        reward = reward / 100
 
         return self._get_observation(), reward, self.done
+        

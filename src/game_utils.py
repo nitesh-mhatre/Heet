@@ -30,8 +30,5 @@ def get_rows_around_student(df, value, column_name):
       raise ValueError(f" '{value}' not found in DataFrame.")
   
   index = index[0]
-  start_idx = max(0, index - 49)
-  return df.iloc[start_idx:index + 1]
-
-
-  
+  start_idx = max(0, index - 50)
+  return df.iloc[start_idx:index]

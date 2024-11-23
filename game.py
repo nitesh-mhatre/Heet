@@ -20,7 +20,7 @@ def get_game():
   df_daily =  df_daily[[ 'DO', 'DH', 'DL', 'DC','DT2' ]]
   
   # Extra info 
-  balance_df = pd.DataFrame(np.array([[level, call, 0, 500, 0,0,0,0,0]]), columns=['leval', 'opt', 'current_step', 
+  balance_df = pd.DataFrame(np.array([[level, call, 0, 1500, 0,0,0,0,0]]), columns=['leval', 'opt', 'current_step', 
 'balance', 'sum_hold', 'no_hold', 'pos','neg', 
 'last_trade'
   ])

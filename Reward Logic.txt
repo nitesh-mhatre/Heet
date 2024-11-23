@@ -1,9 +1,11 @@
-REWARD MUST BE CALCULATED BEFORE CHANGEING STEP
+
 
 0 action is buy
   - check sufficient balance available
-  - check whether atleast 10% profit can be taken 
-  - check is agv posible 
+  - check whether atleast 10% profit can be taken in next 60 min
+  - is there any deep decrement at lest 5% in price before maximum peak
+  - check is agv posible
+      avg means already purchased some unit but now rate drop more than 10 % of purchased unit prices to add more unit to recover loss
       * if last hold amount is too high from current price give give positive else negative
       
   => if above conditions fail then negative
@@ -11,10 +13,12 @@ REWARD MUST BE CALCULATED BEFORE CHANGEING STEP
 1 action is sell
   - check valid option or not
   - check market is falling in next 20 min or sideways 
-  - chek next 30 min any high profit possible
+  - chek next 30 min any high profit is not possible
   
   => if above conditions fail then negative
   
 2 action is hold
   - check for both sell and buy condition if reward from both action is negative then give positive else negative 
+  
+  calculate rewards for all 3 options and if selected option is correct then most rewarding reward 10 % more or penalty of 10% of selected option 
   

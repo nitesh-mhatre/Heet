@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 
 
-expiry = '24NOV'
+expiry = input('Enter Expiry: ')
 data_path = 'data'
 symbol = "^NSEI"
 interval = 1

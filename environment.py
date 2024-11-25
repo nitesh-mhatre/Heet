@@ -11,17 +11,17 @@ class TradingEnvironment:
         self.actions = ['buy', 'sell', 'hold']
         self.holdings = []  # List to track individual purchase prices
         self.done = False
-        
+
         self.no_positive = 0
         self.negative = 0
         self.profit = 0
         self.history = []
-        self.last_trade_step = 60  # Track the step of the last trade
+        self.last_trade_step = 50  # Track the step of the last trade
 
     def reset(self):
-        current_price = self.candles_df.iloc[self.current_step-1]['LC']
-        print(self.no_positive, self.negative, int(self.balance +(len(self.holdings) * (current_price-1))) ,self.current_step)
-        print(pd.DataFrame( self.history , columns= ['order', 'No', 'at', 'balance']))
+        current_price = self.candles_df.iloc[self.current_step - 1]['LC']
+        print(self.no_positive, self.negative, int(self.balance + (len(self.holdings) * (current_price - 1))), self.current_step)
+        print(pd.DataFrame(self.history, columns=['order', 'No', 'at', 'balance', 'reward']))
         print("-----------------------------------")
         self.current_step = 60
         self.balance = 1500
@@ -35,133 +35,133 @@ class TradingEnvironment:
         return self._get_observation()
 
     def _get_observation(self):
-        # Get the recent 60 candles data, static balance, and static market chart
         obs = {
-            'candles': self.candles_df.iloc[self.current_step - 60:self.current_step].values,  # Last 60 candles
-            'balance': self.balance_df.values,  # Static account details
-            'chart': self.chart_df.values       # Static market context
+            'candles': self.candles_df.iloc[self.current_step - 60:self.current_step].values,
+            'balance': self.balance_df.values,
+            'chart': self.chart_df.values
         }
         return obs
-        
+
     def get_rewards(self, action):
-      current_price = self.candles_df.iloc[self.current_step]['LC']
-      next_60_min = self.candles_df.iloc[self.current_step:self.current_step + 120] if self.current_step + 120 < len(self.candles_df) else self.candles_df.iloc[self.current_step:]
-      next_20_min = self.candles_df.iloc[self.current_step:self.current_step + 20] if self.current_step + 20 < len(self.candles_df) else self.candles_df.iloc[self.current_step:]
-      next_30_min = self.candles_df.iloc[self.current_step:self.current_step + 30] if self.current_step + 30 < len(self.candles_df) else self.candles_df.iloc[self.current_step:]
-  
-      reward = 0
-  
-      if action == 0:  # Buy
-          if self.balance >= current_price:
-              # Check for potential profit in the next 60 minutes
-              max_future_price_idx = next_60_min['LC'].idxmax()
-              max_future_price = next_60_min['LC'].loc[max_future_price_idx]
-  
-              # Check for a deep decrement
-              min_future_price_idx = next_60_min['LC'].idxmin()
-              min_future_price = next_60_min['LC'].loc[min_future_price_idx]
-  
-              if max_future_price > current_price * 1.1 and max_future_price - current_price > 5:
-                  if (
-                      min_future_price_idx > max_future_price_idx  # Ensure min comes after max
-                      or min_future_price > current_price * 0.95  # Ensure min isn't too low before max
-                  ):
-                      # Check if averaging is possible
-                      if self.holdings :
-                          if len(self.holdings) < 4 and current_price < min(self.holdings) * 0.9:
-                              reward = 25 #a strong buy signal
-                          else:
-                              reward = -10  # Positive reward for buying under favorable conditions
-                      else:
-                          reward = 10
-                  else:
-                      reward = -5  # Negative reward for insufficient deep decrement
-              else:
-                  reward = -10  # Negative reward for no significant profit potential
-          else:
-              reward = -10  # Negative reward for insufficient balance
-          if len(self.holdings)>2:
-              reward -= len(self.holdings)*10
-  
-      elif action == 1:  # Sell
-          if self.holdings:
-              # Check if the market is falling in the next 20 minutes
-              if next_20_min['LC'].min() < current_price or next_30_min['LC'].max() <= current_price:
-                  reward = 10  * int(current_price -min(self.holdings))  # Positive reward for selling at the right time
-              else:
-                  reward = -5  # Negative reward for holding during unfavorable conditions
-          else:
-              reward = -10  # Negative reward for selling without holdings
-  
-      elif action == 2:  # Hold
-          buy_reward = self.get_rewards(0)
-          sell_reward = self.get_rewards(1)
-  
-          if buy_reward < 0 and sell_reward < 0:
-              reward = 60  # Positive reward for holding when both buy and sell are unfavorable
-          else:
-              reward = -4  # Negative reward for not taking action when better options exist
-  
-      # Adjust reward based on correctness of action
-      if action in [0, 1] and reward > 0:
-          reward *= 1.2  # Add 10% bonus for correct action
-      elif reward < 0:
-          reward *= 1.1  # Increase penalty by 10% for incorrect action
-  
-      return reward
+        current_price = self.candles_df.iloc[self.current_step]['LC']
+        
+        next_60_min = self.candles_df.iloc[self.current_step:self.current_step + 60] if self.current_step + 60 < len(self.candles_df) else self.candles_df.iloc[self.current_step:]
+        
+        next_15_min = self.candles_df.iloc[self.current_step:self.current_step + 15] if self.current_step + 15 < len(self.candles_df) else self.candles_df.iloc[self.current_step:]
+
+        reward = 0
+           
+        if action == 0:  # Buy
+            max_future_price = next_60_min['LC'].max()
+            
+            min_future_price = next_15_min['LC'].min()
+            
+            if self.balance >= current_price and len(self.holdings)==0 and min_future_price > current_price*0.95:
+                if max_future_price > current_price * 1.05:
+                    reward = 100 + (max_future_price - current_price) * 0.1
+                else:
+                    reward = -25
+                    
+            elif len(self.holdings)>1:
+                if (sum(self.holdings)/len(self.holdings))> 0.95*current_price and min_future_price > current_price*0.9 :
+                    reward += 90 +  (max_future_price - current_price) * 0.1
+                else:
+                    reward -=25
+                  
+            else:
+                reward = -30
+
+        elif action == 1:  # Sell
+            if self.holdings:
+                avg_buy_price = sum(self.holdings) / len(self.holdings)
+                if current_price > 1.2* avg_buy_price:
+                    reward = 100 + (current_price - avg_buy_price) * 0.15
+                    
+                elif current_price > 1.04* avg_buy_price:
+                    reward = 60 + (current_price - avg_buy_price) * 0.34
+                else:
+                    reward = -30
+            else:
+                reward = -10
+
+        elif action == 2:  # Hold
+            buy_reward = self.get_rewards(0)
+            sell_reward = self.get_rewards(1)
+            if buy_reward < 0 and sell_reward < 0:
+                reward = 60
+            else:
+                reward = -20
+                
+                
+        if (self.current_step- self.last_trade_step ) > 4 and action in (0, 1):
+            reward -= 5
+        
+
+        return reward
 
     def step(self, action):
         current_price = self.candles_df.iloc[self.current_step]['LC']
-        previous_price = self.candles_df.iloc[self.current_step - 1]['LC'] if self.current_step > 60 else current_price
-        
         reward = self.get_rewards(action)
 
-        if action == 0:  # Buy one unit
-            if self.balance >= current_price:  # Ensure sufficient balance
+        if action == 0:  # Buy
+            if self.balance >= current_price:
                 self.holdings.append(current_price)
-                self.balance -= (current_price+1)
-                self.last_trade_step = self.current_step  # Update last trade step
-                self.history.append(('buy', self.current_step ,current_price, self.balance ))
-        elif action == 1:  # Sell all holdings
-            if self.holdings:  # Ensure there are holdings to sell
-                total_sell_value = len(self.holdings) * (current_price-1)
+                self.balance -= (current_price + 1)
+                self.last_trade_step = self.current_step
+                self.history.append(('buy', self.current_step, current_price, self.balance, reward))
+
+        elif action == 1:  # Sell
+            if self.holdings:
+                total_sell_value = len(self.holdings) * (current_price - 1)
                 total_buy_cost = sum(self.holdings)
                 self.profit = total_sell_value - total_buy_cost
                 self.balance += total_sell_value
-                self.holdings = []  # Clear holdings
-                self.last_trade_step = self.current_step  # Update last trade step
-                self.history.append(('sell', self.current_step ,current_price, self.balance ))
+                self.holdings = []
+                self.last_trade_step = self.current_step
+                self.history.append(('sell', self.current_step, current_price, self.balance, reward))
 
                 if self.profit > 0:
                     self.no_positive += 1
                 elif self.profit < 0:
                     self.negative += 1
 
-        # Update step
         self.current_step += 1
         
+        reward += (self.current_step - 60)/10
+        #reward += round((self.balance + sum(self.holdings))* 1 / 1500, 3)
+
+        # Termination Conditions
         if self.current_step >= len(self.candles_df):
             self.done = True
-        if self.negative > 4:
+            final_profit = self.balance + len(self.holdings) * current_price - 1500
+            reward += final_profit * 0.1
+
+        if self.negative >= 5 or self.balance < 0.7 * 1500:
             self.done = True
-        if (len(self.holdings) * current_price) + self.balance < 1410:
+            #reward -= 100
+
+        if len(self.holdings) > 4 or any(h < current_price * 0.5 for h in self.holdings):
             self.done = True
-        if len(self.holdings)>6:
-            self.done =True
-        
-        if self.done and reward >= 0:
-            self.done = False
+            #reward -= 100
+
+        if self.current_step - self.last_trade_step > 60:
+            self.done = True
+            #reward -= 100
             
-        # update balance_df
-        #print(self.balance_df)
+        if reward > 0 and self.done == True:
+            self.done = False
+        
+        if self.done:
+            reward -= 100
+
+        # Update Balance Information
         self.balance_df['current_step'] = self.current_step
         self.balance_df['balance'] = self.balance
         self.balance_df['sum_hold'] = sum(self.holdings)
-        self.balance_df['no_hold'] =  len(self.holdings)
+        self.balance_df['no_hold'] = len(self.holdings)
         self.balance_df['pos'] = self.no_positive
         self.balance_df['neg'] = self.negative
         self.balance_df['last_trade'] = self.last_trade_step
-        
 
         return self._get_observation(), reward, self.done
-        
+

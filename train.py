@@ -3,6 +3,7 @@ import pandas as pd
 from environment import TradingEnvironment
 from agent import TradingAgent
 import os
+import time
 
 from game import get_game
 
@@ -71,12 +72,16 @@ if __name__ == "__main__":
           model_path = "pe_model.pth"
         
         if os.path.exists(model_path):
+            print(f'{model_path} loaded')
+            #time.sleep(2)
             agent.load_model(model_path)
           
-        train(env, agent, episodes=30, batch_size=32, save_path=model_path)
+        train(env, agent, episodes=100, batch_size=32, save_path=model_path)
         
         no_of_games += 1
       except Exception as e:
         print(e)
-        break
+        agent.save_model(model_path)
+        print('model saved')
+        #time.sleep(5)
     

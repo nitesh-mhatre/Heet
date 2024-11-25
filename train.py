@@ -7,7 +7,7 @@ import time
 
 from game import get_game
 
-def train(env, agent, episodes, batch_size, save_path="trading_model.pth", save_every=10):
+def train(env, agent, episodes, batch_size, save_path="trading_model.pth", save_every=1):
     for episode in range(episodes):
         state = env.reset()
         
@@ -76,7 +76,7 @@ if __name__ == "__main__":
             #time.sleep(2)
             agent.load_model(model_path)
           
-        train(env, agent, episodes=100, batch_size=32, save_path=model_path)
+        train(env, agent, episodes=10, batch_size=1024, save_path=model_path)
         
         no_of_games += 1
       except Exception as e:

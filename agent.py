@@ -4,52 +4,42 @@ import torch.optim as optim
 import random
 import numpy as np
 import torch.nn.functional as F
+from torch.nn import Dropout
 
 class DQN(nn.Module):
-    def __init__(self, input_size, action_size):
+    def __init__(self, input_size, action_size, dropout_rate=0.2):
         super(DQN, self).__init__()
         self.fc1 = nn.Linear(input_size, 2048)
-        self.ln1 = nn.LayerNorm(2048)  # Replacing BatchNorm with LayerNorm
-        self.fc2 = nn.Linear(2048, 1024)
-        self.ln2 = nn.LayerNorm(1024)
-        self.fc3 = nn.Linear(1024, 512)
-        self.ln3 = nn.LayerNorm(512)
-        self.fc4 = nn.Linear(512, 256)
-        self.ln4 = nn.LayerNorm(256)
-        self.fc5 = nn.Linear(256, 256)
-        self.ln5 = nn.LayerNorm(256)
-        self.fc6 = nn.Linear(256, 128)
-        self.ln6 = nn.LayerNorm(128)
-        self.fc7 = nn.Linear(128, 128)
-        self.fc8 = nn.Linear(128, 128)
-        self.fc9 = nn.Linear(128, 128)
-        self.fc10 = nn.Linear(128, action_size)
-
-        self.dropout = nn.Dropout(p=0.2)  # Dropout for regularization
+        self.ln1 = nn.LayerNorm(2048)
+        self.fc2 = nn.Linear(2048, 1536)
+        self.ln2 = nn.LayerNorm(1536)
+        self.fc3 = nn.Linear(1536, 1024)
+        self.ln3 = nn.LayerNorm(1024)
+        self.fc4 = nn.Linear(1024, 768)
+        self.ln4 = nn.LayerNorm(768)
+        self.fc5 = nn.Linear(768, 512)
+        self.ln5 = nn.LayerNorm(512)
+        self.fc6 = nn.Linear(512, 384)
+        self.ln6 = nn.LayerNorm(384)
+        self.fc7 = nn.Linear(384, 256)
+        self.ln7 = nn.LayerNorm(256)
+        self.fc8 = nn.Linear(256, 128)
+        self.ln8 = nn.LayerNorm(128)
+        self.fc9 = nn.Linear(128, action_size)
+        self.dropout = Dropout(dropout_rate)
 
     def forward(self, x):
-        # Apply LayerNorm and LeakyReLU activation
-        x = F.leaky_relu(self.ln1(self.fc1(x)))
-        x = F.leaky_relu(self.ln2(self.fc2(x)))
-        
-        # Add residual connection for fc3
-        residual = x
-        x = F.leaky_relu(self.ln3(self.fc3(x)))
-        x = x + residual  # Residual connection
+        x = self.dropout(F.relu(self.ln1(self.fc1(x))))
+        x = self.dropout(F.relu(self.ln2(self.fc2(x))))
+        x = self.dropout(F.relu(self.ln3(self.fc3(x))))
+        x = self.dropout(F.relu(self.ln4(self.fc4(x))))
+        x = self.dropout(F.relu(self.ln5(self.fc5(x))))
+        x = self.dropout(F.relu(self.ln6(self.fc6(x))))
+        x = self.dropout(F.relu(self.ln7(self.fc7(x))))
+        x = self.dropout(F.relu(self.ln8(self.fc8(x))))
+        return self.fc9(x)
 
-        x = F.leaky_relu(self.ln4(self.fc4(x)))
-        x = F.leaky_relu(self.ln5(self.fc5(x)))
-        x = F.leaky_relu(self.ln6(self.fc6(x)))
 
-        # Residual connection for deeper layers
-        residual = x
-        x = F.leaky_relu(self.fc7(x))
-        x = F.leaky_relu(self.fc8(x))
-        x = x + residual  # Residual connection
-
-        x = F.leaky_relu(self.fc9(x))
-        x = self.fc10(x)  # Final layer (no activation)
-        return x
 
 
 class TradingAgent:
@@ -58,8 +48,8 @@ class TradingAgent:
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
         self.criterion = nn.MSELoss()
         self.memory = []  # Replay buffer
-        self.gamma = 0.99  # Discount factor
-        self.epsilon =  0.8 # 1.0 Exploration rate
+        self.gamma = 0.9  # Discount factor
+        self.epsilon =  0.01# 1.0 Exploration rate
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.01
 

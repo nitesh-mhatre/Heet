@@ -8,11 +8,11 @@ import torch.nn.functional as F
 class DQN(nn.Module):
     def __init__(self, input_size, action_size):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(input_size, 1024)
-        self.ln1 = nn.LayerNorm(1024)  # Replacing BatchNorm with LayerNorm
-        self.fc2 = nn.Linear(1024, 512)
-        self.ln2 = nn.LayerNorm(512)
-        self.fc3 = nn.Linear(512, 512)
+        self.fc1 = nn.Linear(input_size, 2048)
+        self.ln1 = nn.LayerNorm(2048)  # Replacing BatchNorm with LayerNorm
+        self.fc2 = nn.Linear(2048, 1024)
+        self.ln2 = nn.LayerNorm(1024)
+        self.fc3 = nn.Linear(1024, 512)
         self.ln3 = nn.LayerNorm(512)
         self.fc4 = nn.Linear(512, 256)
         self.ln4 = nn.LayerNorm(256)
